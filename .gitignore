@@ -60,6 +60,3 @@ test/types/index.js
 # compiled app
 dist
 
-
-src/routes/graphql/components/mutation.ts
-src/routes/graphql/types/*

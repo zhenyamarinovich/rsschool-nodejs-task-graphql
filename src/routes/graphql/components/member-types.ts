@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { GraphQLList, GraphQLString } from 'graphql';
+import { GraphQLList, GraphQLNonNull, GraphQLString } from 'graphql';
 
-import { memberType } from '../types/member-types';
+import { memberType, typeUpdateMemberType } from '../types/member-types';
 
 export const getAllMemberTypes = {
   type: new GraphQLList(memberType),
@@ -29,10 +29,33 @@ export const getMemberTypeById = {
       equals: args.id,
     });
 
-    if (memberTypeById === null) {
-      throw fastify.httpErrors.notFound('Member type is not founded!');
+    if (memberType) {
+      return memberTypeById;
     }
+    throw fastify.httpErrors.notFound();
+  },
+};
 
-    return memberTypeById;
+export const updateMemberType = {
+  type: memberType,
+  args: {
+    id: { type: new GraphQLNonNull(GraphQLString) },
+    data: { type: typeUpdateMemberType },
+  },
+  resolve: async (
+    _: any,
+    { id, data }: { id: string; data: any },
+    fastify: FastifyInstance
+  ) => {
+    const memberType = await fastify.db.memberTypes.findOne({
+      key: 'id',
+      equals: id,
+    });
+
+    if (memberType) {
+      const updatedMemberType = await fastify.db.memberTypes.change(id, data);
+      return updatedMemberType;
+    }
+    throw fastify.httpErrors.badRequest();
   },
 };

@@ -1,6 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { GraphQLID, GraphQLList } from 'graphql';
-import { profileType } from '../types/profiles';
+import { REGEX } from '../constants';
+import {
+  typeCreateProfile,
+  profileType,
+  typeUpdateProfile,
+} from '../types/profiles';
 
 export const getAllProfiles = {
   type: new GraphQLList(profileType),
@@ -23,15 +28,82 @@ export const getProfileById = {
     args: Record<string, string>,
     fastify: FastifyInstance
   ) => {
-    const profileById = await fastify.db.profiles.findOne({
+    const user = await fastify.db.profiles.findOne({
       key: 'id',
       equals: args.id,
     });
 
-    if (profileById === null) {
-      throw fastify.httpErrors.notFound('Profile is not founded!');
+    if (user) {
+      return user;
+    }
+    throw fastify.httpErrors.notFound();
+  },
+};
+
+export const createProfile = {
+  type: profileType,
+  args: {
+    data: { type: typeCreateProfile },
+  },
+  resolve: async (
+    _: any,
+    { data }: { data: any },
+    fastify: FastifyInstance
+  ) => {
+    const memberType = await fastify.db.memberTypes.findOne({
+      key: 'id',
+      equals: data.memberTypeId,
+    });
+
+    if (memberType === null) {
+      throw fastify.httpErrors.notFound();
     }
 
-    return profileById;
+    if (REGEX.test(data.userId) === false) {
+      throw fastify.httpErrors.badRequest();
+    }
+
+    const profile = await fastify.db.profiles.findOne({
+      key: 'userId',
+      equals: data.userId,
+    });
+
+    if (profile) {
+      throw fastify.httpErrors.badRequest();
+    }
+
+    const updatedProfile = await fastify.db.profiles.create(data);
+
+    return updatedProfile;
+  },
+};
+
+export const updateProfile = {
+  type: profileType,
+  args: {
+    id: { type: GraphQLID },
+    data: { type: typeUpdateProfile },
+  },
+  resolve: async (
+    _: any,
+    { id, data }: { id: string; data: any },
+    fastify: FastifyInstance
+  ) => {
+    if (REGEX.test(id) === false) {
+      throw fastify.httpErrors.badRequest();
+    }
+
+    const profile = await fastify.db.profiles.findOne({
+      key: 'id',
+      equals: id,
+    });
+
+    if (profile === null) {
+      throw fastify.httpErrors.badRequest();
+    }
+
+    const updatedProfile = await fastify.db.profiles.change(id, data);
+
+    return updatedProfile;
   },
 };
