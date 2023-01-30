@@ -59,3 +59,7 @@ test/types/index.js
 
 # compiled app
 dist
+
+
+src/routes/graphql/components/*
+src/routes/graphql/types/*
