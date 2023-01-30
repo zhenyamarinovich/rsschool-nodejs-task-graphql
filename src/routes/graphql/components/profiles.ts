@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { GraphQLID, GraphQLList } from 'graphql';
-import { REGEX_EXP } from '../constants';
+import { REGEX } from '../constants';
 import {
   typeCreateProfile,
   profileType,
@@ -59,7 +59,7 @@ export const createProfile = {
       throw fastify.httpErrors.notFound();
     }
 
-    if (REGEX_EXP.test(data.userId) === false) {
+    if (REGEX.test(data.userId) === false) {
       throw fastify.httpErrors.badRequest();
     }
 
@@ -89,7 +89,7 @@ export const updateProfile = {
     { id, data }: { id: string; data: any },
     fastify: FastifyInstance
   ) => {
-    if (REGEX_EXP.test(id) === false) {
+    if (REGEX.test(id) === false) {
       throw fastify.httpErrors.badRequest();
     }
 
