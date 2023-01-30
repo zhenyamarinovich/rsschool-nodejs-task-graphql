@@ -61,5 +61,5 @@ test/types/index.js
 dist
 
 
-src/routes/graphql/components/*
+src/routes/graphql/components/mutation.ts
 src/routes/graphql/types/*
